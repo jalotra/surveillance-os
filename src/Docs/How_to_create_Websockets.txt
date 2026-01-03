@@ -1,5 +1,0 @@
-I will be using the  django channels to create web sockets to push the 
-real time image data or live video stream to an aws server as I am having quite a 
-lot of aws student credits that are there in my account.
-
-Will be using celery to create a job everytime an endpoint is called.
