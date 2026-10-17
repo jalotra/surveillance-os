@@ -1,0 +1,21 @@
+services:
+  hub:
+    build: ./src/backend
+    restart: unless-stopped
+    # Host networking: the ingest socket must see tailnet 100.x source IPs
+    # for whois identity, and tailscaled's LocalAPI socket lives on the
+    # host. (No port mapping needed — Cloudflare Tunnel dials :8080.)
+    network_mode: host
+    volumes:
+      - hub-scratch:/var/lib/surveillance-hub/chunks
+      - /run/tailscale/tailscaled.sock:/run/tailscale/tailscaled.sock:ro
+    env_file: .env
+    environment:
+      LISTEN_ADDR: "127.0.0.1:8080"
+      INGEST_AUTH: tailscale
+      CHUNK_SCRATCH_DIR: /var/lib/surveillance-hub/chunks
+    # Note: with network_mode=host, LISTEN_ADDR binds the host directly.
+    # Keep it on 127.0.0.1 if cloudflared runs on the same host; set
+    # 0.0.0.0:8080 if the tunnel or tailnet peers need it remotely.
+volumes:
+  hub-scratch:

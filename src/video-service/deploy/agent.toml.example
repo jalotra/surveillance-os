@@ -1,0 +1,26 @@
+# /etc/surveillance/agent.toml — Pi agent config (plans/video-service.md §1.3)
+# Copy to agent.toml and edit cam_id + hub. Everything else has sane defaults.
+
+# Camera identity — must match cameras.id AND the tailnet node name on the hub.
+cam_id = "home-a"
+
+# Hub's tailnet address. Bare host:port → ws:// (tailnet already encrypts).
+# Use a full "wss://host:port" URL if TLS is ever terminated in front of the hub.
+hub = "100.x.y.z:8080"
+
+# Capture. Defaults = 1080p10 @ 0.7 Mbps, ~5% CPU on Pi 4 hardware encoder.
+width           = 1920
+height          = 1080
+fps             = 10
+bitrate         = 700_000      # bits/sec (v4l2h264enc video_bitrate unit)
+# gop_size      = 20           # keyframe interval in frames; 0/omitted = fps*2
+# frag_duration_ms = 1000      # mp4mux fragment-duration
+# software_encode = false      # Pi 5 / no hw encoder → x264enc zerolatency
+
+# Thumbnail branch (tee → videorate 1/5 → jpegenc → fd 3) for the grid view.
+thumbs = true
+
+# Spool — tmpfs, not SD. 1 GB ≈ 3 h of footage at 0.7 Mbps.
+spool_dir    = "/run/surveillance/spool"
+spool_max_mb = 1024
+# spool_seg_mb = 16           # segment rollover target (must be ≤ spool_max_mb/2)

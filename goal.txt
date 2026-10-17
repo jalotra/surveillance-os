@@ -1,0 +1,19 @@
+
+i want to build out a fleet of raspberry pi's and then connect them to a central hub which for 
+now would be running on a single VM on a AWS region and this would happen : 
+1. the pi's would stream out video from the camera to central command
+2. the central command would then keep these frames into a hot cache and would also store for past use (should be stored in chunks of 10 mins each)
+3. and then on client side would have an app (with google auth) so they would be able to see what the cameras are streaming in near real time 
+4. to make the networking secure (I was thinking about using tailscale and letting the pi's to connect directly via a tunnel to central command) instead of doing HTTP auth, what do you think ? 
+
+
+things to be figured out : 
+1. schema on what the hardware to be used ? (pi, camera, microphone etc)
+2. how to bundle all the things together and make this deployable 
+3. no software stack side; how to make sure that everything written is extremely non-latent and fast (was thinking about using golang to achieve this)
+4. things to buy on the hardware side ?
+
+
+
+
+

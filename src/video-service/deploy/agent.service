@@ -1,0 +1,49 @@
+# /etc/systemd/system/surveillance-agent.service
+# plans/video-service.md §1.4 — chrony ordering matters: no timestamp is
+# trustworthy before NTP sync, so we wait for chrony-wait AND the tailnet.
+[Unit]
+Description=surveillance agent (capture -> encode -> spool -> push)
+After=chrony-wait.service tailscaled.service network-online.target
+Wants=chrony-wait.service network-online.target
+# Wait for the clock to actually sync before trusting pts_ms stamps.
+ConditionFileIsExecutable=/opt/surveillance/agent
+
+[Service]
+Type=simple
+ExecStart=/opt/surveillance/agent -config /etc/surveillance/agent.toml
+Restart=always
+RestartSec=3
+
+# tmpfs spool lives under /run/surveillance/spool — created fresh per boot.
+RuntimeDirectory=surveillance
+RuntimeDirectoryMode=0700
+
+# Go runtime knobs (plans §3): keep GC lazy and heap bounded so the agent
+# fits alongside the 1 GB tmpfs spool on a 4 GB Pi 4.
+Environment=GOGC=200
+Environment=GOMEMLIMIT=256MiB
+Environment=GOMAXPROCS=4
+
+# Hard ceiling — a leak gets restarted, not OOM-killed piecemeal.
+# cgroup v2 charges tmpfs writes to this service, so the 1 GB spool in
+# /run/surveillance/spool counts against the limit: 1 GB spool + ~300 MB
+# working set → 1.5 G, or the agent OOMs exactly when the hub is down.
+MemoryMax=1536M
+
+# Hardening (the process only needs: camera, net, tmpfs spool, its config).
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/run/surveillance
+PrivateTmp=true
+# vcgencmd needs /dev/vcio and the video devices — whitelist both.
+DeviceAllow=/dev/vcio rw
+DeviceAllow=/dev/video0 rw
+DeviceAllow=/dev/video11 rw
+DeviceAllow=/dev/dma_heap rw
+DeviceAllow=/dev/media0 rw
+DeviceAllow=/dev/media1 rw
+SupplementaryGroups=video
+
+[Install]
+WantedBy=multi-user.target
